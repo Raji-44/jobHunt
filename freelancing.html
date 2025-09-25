@@ -138,11 +138,11 @@ let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
 // Add sample Freelance jobs if none exist
 if(!allJobs.some(job => job.type && job.type.toLowerCase() === 'freelance')){
   const sampleFreelance = [
-    {title:"Web Developer", company:"Toptal", location:"Remote", type:"Freelance", desc:"Develop websites for clients.", skills:"HTML, CSS, JS", logo:"https://upload.wikimedia.org/wikipedia/commons/3/39/Toptal_logo.svg"},
-    {title:"Graphic Designer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Create graphic designs for projects.", skills:"Photoshop, Illustrator", logo:"https://upload.wikimedia.org/wikipedia/commons/1/13/Fiverr_Logo.svg"},
-    {title:"Content Writer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Write engaging content for blogs.", skills:"Writing, SEO", logo:"https://upload.wikimedia.org/wikipedia/commons/3/33/Upwork-logo.svg"},
-    {title:"UI/UX Designer", company:"Dribbble", location:"Remote", type:"Freelance", desc:"Design interfaces and experiences.", skills:"Figma, Adobe XD", logo:"https://upload.wikimedia.org/wikipedia/commons/3/33/Dribbble_logo.svg"},
-    {title:"Mobile App Developer", company:"Gigster", location:"Remote", type:"Freelance", desc:"Develop mobile applications.", skills:"Flutter, React Native", logo:"https://upload.wikimedia.org/wikipedia/commons/5/50/Gigster_logo.svg"}
+    {title:"Web Developer", company:"Toptal", location:"Remote", type:"Freelance", desc:"Develop websites for clients.", skills:"HTML, CSS, JS", logo:"assets/logos/toptal.png"},
+    {title:"Graphic Designer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Create graphic designs for projects.", skills:"Photoshop, Illustrator", logo:"assets/logos/fiverr.png"},
+    {title:"Content Writer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Write engaging content for blogs.", skills:"Writing, SEO", logo:"assets/logos/upwork.png"},
+    {title:"UI/UX Designer", company:"Dribbble", location:"Remote", type:"Freelance", desc:"Design interfaces and experiences.", skills:"Figma, Adobe XD", logo:"assets/logos/dribbble.png"},
+    {title:"Mobile App Developer", company:"Gigster", location:"Remote", type:"Freelance", desc:"Develop mobile applications.", skills:"Flutter, React Native", logo:"assets/logos/gigster.png"}
   ];
   allJobs = allJobs.concat(sampleFreelance);
   localStorage.setItem('jobs', JSON.stringify(allJobs));
@@ -168,10 +168,12 @@ function renderFreelance(list){
     div.dataset.type=job.type;
     div.dataset.desc=job.desc;
     div.dataset.skills=job.skills;
-    div.innerHTML=`<img src="${job.logo}" alt="${job.company}">
+    div.innerHTML=`
+      <img src="${job.logo}" alt="${job.company}" onerror="this.src='assets/logos/default.png'">
       <h4>${job.title}</h4>
       <p>${job.company} • ${job.location} • ${job.type}</p>
-      <button class="btn" onclick="openModalCard(this)">See Details</button>`;
+      <button class="btn" onclick="openModalCard(this)">See Details</button>
+    `;
     container.appendChild(div);
   });
 }
@@ -233,5 +235,3 @@ function submitApplication(e){
 </footer>
 </body>
 </html>
-
-
