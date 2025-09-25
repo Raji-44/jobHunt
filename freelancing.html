@@ -150,7 +150,7 @@ if(!allJobs.some(job => job.type && job.type.toLowerCase() === 'freelance')){
 let freelanceJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
 
 // Render Freelance jobs
-function renderInternships(list){
+function renderFreelance(list){
   const container = document.getElementById('job-cards');
   container.innerHTML = '';
   if(list.length === 0){ 
@@ -175,7 +175,7 @@ function renderInternships(list){
 }
 
 // Initial render
-renderInternships(freelanceJobs);
+renderFreelance(freelanceJobs);
 
 // Search / Clear
 function searchJobs(){
@@ -185,12 +185,12 @@ function searchJobs(){
     (kw==='' || j.title.toLowerCase().includes(kw) || j.company.toLowerCase().includes(kw)) &&
     (loc==='' || j.location.toLowerCase().includes(loc))
   );
-  renderInternships(filtered);
+  renderFreelance(filtered);
 }
 function clearSearch(){ 
   document.getElementById('keyword').value=''; 
   document.getElementById('location').value=''; 
-  renderInternships(freelanceJobs); 
+  renderFreelance(freelanceJobs); 
 }
 
 // Modal functions
