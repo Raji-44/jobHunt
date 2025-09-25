@@ -124,138 +124,57 @@ footer p {margin:5px 0;}
     </div>
   </div>
 </div>
-<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-AOS.init();
-
-// Navbar dropdown
-const dropdownLink = document.getElementById('category-link');
-const dropdownMenu = document.getElementById('dropdown-menu');
-dropdownLink.addEventListener('click', e => { 
-    e.stopPropagation(); 
-    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block'; 
-});
-document.addEventListener('click', () => { dropdownMenu.style.display='none'; });
-
-// Highlight current page
-document.querySelectorAll('.nav-links li a').forEach(link => {
-  if(window.location.pathname.endsWith(link.getAttribute('href'))) link.classList.add('active');
-});
-
-// Login / Logout
-const authLink = document.getElementById('auth-link').querySelector('a');
-const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-if(currentUser){
-  authLink.textContent = 'Logout';
-  authLink.href = '#';
-  authLink.onclick = () => { 
-      localStorage.removeItem('currentUser'); 
-      window.location.href='access.html'; 
-  };
-} else {
-  authLink.textContent='Login / Sign Up';
-  authLink.href='access.html';
-}
-
 // Load all jobs from localStorage
 let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
 
-// Default sample freelance jobs
-const sampleFreelancing = [
-  {title:"Web Designer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Create websites for clients worldwide.", skills:"HTML, CSS, JS", logo:"https://e7.pngegg.com/pngimages/744/960/png-clipart-upwork-computer-icons-freelancer-others-miscellaneous-text-thumbnail.png"},
-  {title:"Content Writer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Write articles, blogs, and copywriting.", skills:"Writing, SEO", logo:"https://logos-world.net/wp-content/uploads/2020/12/Fiverr-Symbol.png"},
-  {title:"Mobile App Developer", company:"Freelancer.com", location:"Remote", type:"Freelance", desc:"Build Android & iOS applications.", skills:"Java, Swift, Kotlin", logo:"https://brandlogos.net/wp-content/uploads/2017/01/freelancer-logo.png"},
-  {title:"Graphic Designer", company:"99designs", location:"Remote", type:"Freelance", desc:"Design logos, brochures, and banners.", skills:"Photoshop, Illustrator", logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi1jAkA-HSFWbza1Mjp1sy_JEd7jkaEhKtIQ&s"},
-  {title:"SEO Specialist", company:"PeoplePerHour", location:"Remote", type:"Freelance", desc:"Optimize websites for search engines.", skills:"SEO, Analytics", logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw182wb_1kQoOZuyRjoYRpjOfVGd0ktfbmDA&s"}
-];
+// Filter only Freelance jobs
+let freelanceJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
 
-// Add sample jobs if they don’t already exist
-sampleFreelancing.forEach(job => {
-    const exists = allJobs.some(j => j.title === job.title && j.company === job.company);
-    if(!exists) allJobs.push(job);
-});
+// Get the container in Admin page
+const container = document.getElementById('admin-freelance-container');
+container.innerHTML = ''; // Clear previous content
 
-// Save updated jobs back to localStorage
-localStorage.setItem('jobs', JSON.stringify(allJobs));
-
-// Filter only freelance jobs
-let freelancingJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
-
-// Render freelance jobs
-function renderFreelancing(list){
-    const container = document.getElementById('job-cards');
-    container.innerHTML = '';
-    if(list.length === 0){ 
-        container.innerHTML = "<p style='text-align:center;'>No freelancing projects found!</p>";
-        return;
-    }
-    list.forEach(job => {
+if(freelanceJobs.length === 0){
+    container.innerHTML = "<p style='text-align:center;'>No freelance jobs found.</p>";
+} else {
+    freelanceJobs.forEach(job => {
         const div = document.createElement('div');
         div.className = 'job-card';
-        div.dataset.title = job.title;
-        div.dataset.company = job.company;
-        div.dataset.location = job.location;
-        div.dataset.type = job.type;
-        div.dataset.desc = job.desc;
-        div.dataset.skills = job.skills;
+        div.style.marginBottom = '15px';
         div.innerHTML = `
-            <img src="${job.logo}" alt="${job.company}">
-            <h4>${job.title}</h4>
-            <p>${job.company} • ${job.location} • ${job.type}</p>
-            <button class="btn" onclick="openModalCard(this)">See Details</button>`;
+            <img src="${job.logo}" alt="${job.company}" style="width:60px;height:40px;object-fit:contain;margin-bottom:5px;">
+            <h4 style="margin:0;">${job.title}</h4>
+            <p style="margin:0;">${job.company} • ${job.location}</p>
+            <p style="margin:0;font-size:0.9rem;color:#555;">Type: ${job.type}</p>`;
         container.appendChild(div);
     });
 }
 
-// Initial render
-renderFreelancing(freelancingJobs);
-
-// Search / Clear
-function searchJobs(){
-  const kw=document.getElementById('keyword').value.toLowerCase();
-  const loc=document.getElementById('location').value.toLowerCase();
-  const filtered=freelancingJobs.filter(j=>
-    (kw==='' || j.title.toLowerCase().includes(kw)) &&
-    (loc==='' || j.location.toLowerCase().includes(loc))
-  );
-  renderFreelancing(filtered);
-}
-function clearSearch(){ 
-  document.getElementById('keyword').value=''; 
-  document.getElementById('location').value=''; 
-  renderFreelancing(freelancingJobs); 
-}
-
-// Modal functions
-function openModalCard(btn){
-  const card=btn.parentElement;
-  document.getElementById('modal-title').innerText=card.dataset.title;
-  document.getElementById('modal-company').innerText=card.dataset.company;
-  document.getElementById('modal-location').innerText=card.dataset.location;
-  document.getElementById('modal-type').innerText=card.dataset.type;
-  document.getElementById('modal-desc').innerText=card.dataset.desc;
-  document.getElementById('modal-skills').innerText=card.dataset.skills;
-  document.getElementById('job-modal').style.display='flex';
-  document.getElementById('apply-form').style.display='none';
-  document.getElementById('apply-btn').style.display='block';
-}
-function closeModal(){ document.getElementById('job-modal').style.display='none'; }
-function showApplyForm(){ 
-  document.getElementById('apply-form').style.display='block'; 
-  document.getElementById('apply-btn').style.display='none'; 
-}
-function submitApplication(e){
-  e.preventDefault();
-  const name=document.getElementById('app-name').value;
-  const email=document.getElementById('app-email').value;
-  const jobTitle=document.getElementById('modal-title').innerText;
-  const applications=JSON.parse(localStorage.getItem('applications')||'[]');
-  applications.push({jobTitle,name,email,appliedAt:new Date().toISOString()});
-  localStorage.setItem('applications',JSON.stringify(applications));
-  alert(`Applied Successfully!\nName: ${name}\nEmail: ${email}\nProject: ${jobTitle}`);
-  closeModal();
-  document.getElementById('app-name').value='';
-  document.getElementById('app-email').value='';
+// Optional: Add search/filter inside Admin page
+function searchAdminFreelance(){
+    const keyword = document.getElementById('admin-search-keyword').value.toLowerCase();
+    const location = document.getElementById('admin-search-location').value.toLowerCase();
+    const filtered = freelanceJobs.filter(j =>
+        (keyword === '' || j.title.toLowerCase().includes(keyword) || j.company.toLowerCase().includes(keyword)) &&
+        (location === '' || j.location.toLowerCase().includes(location))
+    );
+    container.innerHTML = '';
+    if(filtered.length === 0){
+        container.innerHTML = "<p style='text-align:center;'>No freelance jobs match your search.</p>";
+        return;
+    }
+    filtered.forEach(job => {
+        const div = document.createElement('div');
+        div.className = 'job-card';
+        div.style.marginBottom = '15px';
+        div.innerHTML = `
+            <img src="${job.logo}" alt="${job.company}" style="width:60px;height:40px;object-fit:contain;margin-bottom:5px;">
+            <h4 style="margin:0;">${job.title}</h4>
+            <p style="margin:0;">${job.company} • ${job.location}</p>
+            <p style="margin:0;font-size:0.9rem;color:#555;">Type: ${job.type}</p>`;
+        container.appendChild(div);
+    });
 }
 </script>
 
@@ -264,5 +183,6 @@ function submitApplication(e){
 </footer>
 </body>
 </html>
+
 
 
