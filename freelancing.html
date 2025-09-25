@@ -124,8 +124,8 @@ footer p {margin:5px 0;}
     </div>
   </div>
 </div>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-// AOS init
 AOS.init();
 
 // Navbar dropdown
@@ -157,7 +157,10 @@ if(currentUser){
   authLink.href='access.html';
 }
 
-// SAMPLE Freelance jobs (default)
+// Load all jobs from localStorage
+let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
+
+// Default sample freelance jobs
 const sampleFreelancing = [
   {title:"Web Designer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Create websites for clients worldwide.", skills:"HTML, CSS, JS", logo:"https://e7.pngegg.com/pngimages/744/960/png-clipart-upwork-computer-icons-freelancer-others-miscellaneous-text-thumbnail.png"},
   {title:"Content Writer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Write articles, blogs, and copywriting.", skills:"Writing, SEO", logo:"https://logos-world.net/wp-content/uploads/2020/12/Fiverr-Symbol.png"},
@@ -166,44 +169,42 @@ const sampleFreelancing = [
   {title:"SEO Specialist", company:"PeoplePerHour", location:"Remote", type:"Freelance", desc:"Optimize websites for search engines.", skills:"SEO, Analytics", logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw182wb_1kQoOZuyRjoYRpjOfVGd0ktfbmDA&s"}
 ];
 
-// LOAD jobs from localStorage
-let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
-
-// Add sample jobs if not already in localStorage
-sampleFreelancing.forEach(job=>{
-  const exists = allJobs.some(j=> j.title === job.title && j.company === job.company);
-  if(!exists) allJobs.push(job);
+// Add sample jobs if they don’t already exist
+sampleFreelancing.forEach(job => {
+    const exists = allJobs.some(j => j.title === job.title && j.company === job.company);
+    if(!exists) allJobs.push(job);
 });
 
-// Save updated jobs to localStorage
+// Save updated jobs back to localStorage
 localStorage.setItem('jobs', JSON.stringify(allJobs));
 
-// Filter only Freelance jobs
+// Filter only freelance jobs
 let freelancingJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
 
 // Render freelance jobs
 function renderFreelancing(list){
-  const container = document.getElementById('job-cards');
-  container.innerHTML = '';
-  if(list.length === 0){ 
-    container.innerHTML = "<p style='text-align:center;'>No freelancing projects found!</p>"; 
-    return; 
-  }
-  list.forEach(job=>{
-    const div=document.createElement('div');
-    div.className='job-card';
-    div.dataset.title=job.title;
-    div.dataset.company=job.company;
-    div.dataset.location=job.location;
-    div.dataset.type=job.type;
-    div.dataset.desc=job.desc;
-    div.dataset.skills=job.skills;
-    div.innerHTML=`<img src="${job.logo}" alt="${job.company}">
-      <h4>${job.title}</h4>
-      <p>${job.company} • ${job.location} • ${job.type}</p>
-      <button class="btn" onclick="openModalCard(this)">See Details</button>`;
-    container.appendChild(div);
-  });
+    const container = document.getElementById('job-cards');
+    container.innerHTML = '';
+    if(list.length === 0){ 
+        container.innerHTML = "<p style='text-align:center;'>No freelancing projects found!</p>";
+        return;
+    }
+    list.forEach(job => {
+        const div = document.createElement('div');
+        div.className = 'job-card';
+        div.dataset.title = job.title;
+        div.dataset.company = job.company;
+        div.dataset.location = job.location;
+        div.dataset.type = job.type;
+        div.dataset.desc = job.desc;
+        div.dataset.skills = job.skills;
+        div.innerHTML = `
+            <img src="${job.logo}" alt="${job.company}">
+            <h4>${job.title}</h4>
+            <p>${job.company} • ${job.location} • ${job.type}</p>
+            <button class="btn" onclick="openModalCard(this)">See Details</button>`;
+        container.appendChild(div);
+    });
 }
 
 // Initial render
@@ -257,9 +258,11 @@ function submitApplication(e){
   document.getElementById('app-email').value='';
 }
 </script>
+
 <footer>
   <p>&copy; 2025 JobPortal. All rights reserved.</p>
 </footer>
 </body>
 </html>
+
 
