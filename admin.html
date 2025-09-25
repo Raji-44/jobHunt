@@ -139,7 +139,6 @@ function logoutAdmin(){
   localStorage.removeItem('currentUser');
   location.reload();
 }
-
 function loadAdminData(){
   const users = JSON.parse(localStorage.getItem('users')||'[]');
   const jobs = JSON.parse(localStorage.getItem('jobs')||'[]');
@@ -165,14 +164,18 @@ function loadAdminData(){
     }
   });
 
-  function renderJobsByType(tableId,type){
+  function renderJobsByType(tableId, type){
     const tbody = document.querySelector(`#${tableId} tbody`);
     tbody.innerHTML='';
     let index=1;
-    jobs.forEach((job,realIndex)=>{
-      if(job.type===type){
+    jobs.forEach((job, realIndex)=>{
+      // Normalize type: lowercase, trimmed
+      if(job.type && job.type.toLowerCase() === type.toLowerCase()){
         tbody.innerHTML += `<tr>
-          <td>${index++}</td><td>${job.title}</td><td>${job.company}</td><td>${job.location}</td>
+          <td>${index++}</td>
+          <td>${job.title}</td>
+          <td>${job.company}</td>
+          <td>${job.location}</td>
           <td>${job.postedBy || 'System'}</td>
           <td>
             <button class="btn edit" onclick="editJob(${realIndex})">Edit</button>
@@ -185,7 +188,7 @@ function loadAdminData(){
 
   renderJobsByType('fulltimeJobsTable','Full-time');
   renderJobsByType('internshipsTable','Internship');
-  renderJobsByType('freelanceJobsTable','Freelance');
+  renderJobsByType('freelanceJobsTable','Freelance'); // now case-insensitive
 
   // Applications
   const appsTbody = document.querySelector('#appsTable tbody');
@@ -196,10 +199,11 @@ function loadAdminData(){
       <td>${a.name || "N/A"}</td>
       <td>${a.email || "N/A"}</td>
       <td>${a.jobTitle}</td>
-      <td>${a.appliedOn || "N/A"}</td>
+      <td>${a.appliedOn || new Date(a.appliedAt).toLocaleString() || "N/A"}</td>
     </tr>`;
   });
 }
+
 
 // Users
 function deleteUser(email){
@@ -251,3 +255,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 </body>
 </html>
+
