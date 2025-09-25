@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Access - JobPortal</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body {
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background: #f4f6fb;
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  .access-container {
+    background:#fff;
+    padding:40px 30px;
+    border-radius:15px;
+    box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    width: 400px;
+  }
+  .access-container h2 {
+    text-align:center;
+    font-size:2rem;
+    margin-bottom:25px;
+    color:#052c47;
+  }
+  .access-container label {
+    display:block;
+    margin-bottom:6px;
+    font-weight:600;
+    color:#052c47;
+  }
+  .access-container input,
+  .access-container select {
+    width:100%;
+    padding:12px 15px;
+    margin-bottom:18px;
+    border-radius:25px;
+    border:1px solid #ccc;
+    outline:none;
+    font-size:0.95rem;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    transition:0.3s;
+  }
+  .access-container input:focus,
+  .access-container select:focus {
+    box-shadow:0 6px 15px rgba(0,0,0,0.15);
+  }
+  .access-container button {
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:25px;
+    background:#00d1ff;
+    color:#052c47;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+  }
+  .access-container button:hover {
+    background:#00b8e6;
+    color:#fff;
+  }
+  .toggle {
+    text-align:center;
+    margin-top:15px;
+    color:#00d1ff;
+    cursor:pointer;
+  }
+  .error {
+    color:red;
+    text-align:center;
+    display:none;
+    margin-bottom:12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="access-container">
+  <h2 id="formTitle">Sign Up</h2>
+  <div class="error" id="errorMsg"></div>
+  <form id="accessForm">
+    <div id="nameField">
+      <label for="name">Full Name</label>
+      <input id="name" type="text" placeholder="Your full name"/>
+    </div>
+
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@example.com" required/>
+
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="Password" required/>
+
+    <div id="companyField" style="display:none;">
+      <label for="company">Company Name</label>
+      <input id="company" type="text" placeholder="Your company name"/>
+    </div>
+
+    <label for="role">Login as</label>
+    <select id="role" required onchange="toggleCompanyField()">
+      <option value="">-- Select --</option>
+      <option value="user">User (Apply Jobs)</option>
+      <option value="recruiter">Recruiter (Post Jobs)</option>
+    </select>
+
+    <button type="submit" id="submitBtn">Sign Up</button>
+  </form>
+
+  <div class="toggle" id="toggleText">
+    Already have an account? <span style="font-weight:800;" onclick="toggleForm()">Login</span>
+  </div>
+</div>
+
+<script>
+let isLogin = false;
+
+function toggleCompanyField(){
+  const role = document.getElementById('role').value;
+  document.getElementById('companyField').style.display = (role==='recruiter' && !isLogin) ? 'block' : 'none';
+}
+
+function toggleForm(){
+  isLogin = !isLogin;
+  document.getElementById('formTitle').innerText = isLogin ? 'Login' : 'Sign Up';
+  document.getElementById('submitBtn').innerText = isLogin ? 'Login' : 'Sign Up';
+  document.getElementById('toggleText').innerHTML = isLogin ? 
+    `Don't have an account? <span style="font-weight:800;cursor:pointer;" onclick="toggleForm()">Sign Up</span>` : 
+    `Already have an account? <span style="font-weight:800;cursor:pointer;" onclick="toggleForm()">Login</span>`;
+  document.getElementById('nameField').style.display = isLogin ? 'none' : 'block';
+  toggleCompanyField();
+  document.getElementById('role').value = '';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+
+document.getElementById('accessForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim().toLowerCase();
+  const password = document.getElementById('password').value;
+  const role = document.getElementById('role').value;
+  const company = document.getElementById('company').value.trim();
+  const errorEl = document.getElementById('errorMsg');
+
+  if ((!isLogin && !name) || !email || !password || !role || (!isLogin && role==='recruiter' && !company)) {
+    errorEl.style.display = 'block';
+    errorEl.innerText = 'Please fill all required fields.';
+    return;
+  }
+
+  let users = JSON.parse(localStorage.getItem('users') || '[]');
+
+  if (isLogin) {
+    const user = users.find(u => u.email === email && u.password === password && u.role === role);
+    if (!user) {
+      errorEl.style.display = 'block';
+      errorEl.innerText = 'Invalid credentials for the selected role.';
+      return;
+    }
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    if(role==='recruiter') localStorage.setItem('recruiterIntent', 'yes'); // recruiter clicked post job
+    location.href = "index.html";
+  } else {
+    if (users.find(u => u.email === email)) {
+      errorEl.style.display = 'block';
+      errorEl.innerText = 'User already exists. Please login.';
+      return;
+    }
+    const newUser = { name, email, password, role, company: role==='recruiter'?company:"" };
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem('currentUser', JSON.stringify(newUser));
+    if(role==='recruiter') localStorage.setItem('recruiterIntent', 'yes');
+    location.href = "index.html";
+  }
+});
+</script>
+
+</body>
+</html>

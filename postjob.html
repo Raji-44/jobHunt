@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recruiter Dashboard - Post Job</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f6fb; color:#052c47; }
+.navbar { display:flex; justify-content:space-between; align-items:center; background:#052c47; padding:15px 30px; color:#fff; }
+.navbar .logo { font-size:1.5rem; font-weight:bold; }
+.navbar ul { list-style:none; display:flex; gap:20px; margin:0; padding:0; }
+.navbar ul li a { color:#fff; text-decoration:none; font-weight:500; cursor:pointer; }
+.container { max-width:1200px; margin:30px auto; padding:0 20px; }
+.add-job { background:#fff; padding:20px; border-radius:12px; margin-bottom:30px; box-shadow:0 6px 18px rgba(0,0,0,0.06); }
+.add-job input, .add-job select, .add-job textarea, .add-job button { display:block; width:100%; margin:10px 0; padding:10px; border-radius:6px; border:1px solid #ccc; }
+.add-job button { background:#00b8e6; color:#fff; border:none; cursor:pointer; }
+.job-cards { display:flex; flex-wrap:wrap; gap:25px; }
+.job-card { background:#fff; padding:20px; width:300px; border-radius:15px; box-shadow:0 6px 15px rgba(0,0,0,0.1); text-align:center; position:relative; transition:0.3s; }
+.job-card:hover { transform:translateY(-5px); }
+.job-card img { width:80px; margin-bottom:10px; border-radius:8px; }
+.job-card h4 { font-size:1.2rem; margin-bottom:5px; }
+.job-card p { font-size:0.9rem; margin-bottom:8px; }
+.job-card .btn { text-decoration:none; background:#00d1ff; color:#052c47; padding:6px 15px; border-radius:20px; font-weight:600; cursor:pointer; margin:3px; }
+.job-card .btn:hover { background:#00b8e6; color:#fff; }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">JobPortal Recruiter</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="#" id="logoutLink">Logout</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+  <div class="add-job" data-aos="fade-up">
+    <h2>Add New Job / Internship / Freelance</h2>
+    <input type="text" id="jobTitle" placeholder="Job Title">
+    <input type="text" id="companyName" placeholder="Company Name">
+    <input type="text" id="jobLocation" placeholder="Location">
+    <input type="text" id="companyLogo" placeholder="Company Logo URL">
+    <select id="jobType">
+      <option value="Full-time">Job</option>
+      <option value="Internship">Internship</option>
+      <option value="Freelance">Freelance</option>
+    </select>
+    <textarea id="jobDescription" rows="4" placeholder="Job Description"></textarea>
+    <input type="text" id="jobSkills" placeholder="Skills Needed (comma separated)">
+    <button onclick="addJob()">Add Job</button>
+  </div>
+
+  <div class="job-cards" id="myJobsContainer" data-aos="fade-up"></div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+AOS.init();
+
+// Check recruiter login
+const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+if(!currentUser || currentUser.role !== 'recruiter'){
+  alert("Please login as recruiter!");
+  window.location.href = "access.html";
+}
+
+// Logout
+document.getElementById("logoutLink").onclick = () => {
+  localStorage.removeItem("currentUser");
+  window.location.href = "access.html";
+};
+
+// Load and display recruiter's jobs
+function loadMyJobs(){
+  const allJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+  const myJobs = allJobs.filter(job => job.postedBy === currentUser.email);
+  const container = document.getElementById("myJobsContainer");
+  container.innerHTML = "";
+
+  myJobs.forEach((job, index) => {
+    const card = document.createElement("div");
+    card.classList.add("job-card");
+    card.innerHTML = `
+      <img src="${job.logo || 'https://via.placeholder.com/80'}" alt="${job.company}">
+      <h4>${job.title}</h4>
+      <p><strong>${job.company}</strong></p>
+      <p>${job.location} • ${job.type}</p>
+      <p>${job.desc}</p>
+      <p><strong>Skills:</strong> ${job.skills}</p>
+      <button class="btn" onclick="editJob(${index})">Edit</button>
+      <button class="btn" onclick="deleteJob(${index})">Delete</button>
+    `;
+    container.appendChild(card);
+  });
+}
+
+// Add job
+function addJob(){
+  const title = document.getElementById("jobTitle").value.trim();
+  const company = document.getElementById("companyName").value.trim();
+  const location = document.getElementById("jobLocation").value.trim();
+  const logo = document.getElementById("companyLogo").value.trim();
+  const type = document.getElementById("jobType").value;
+  const description = document.getElementById("jobDescription").value.trim();
+  const skills = document.getElementById("jobSkills").value.trim();
+
+  if(!title || !company || !location || !type || !description || !skills){ alert("Please fill all fields"); return; }
+
+  let allJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+  allJobs.push({
+    title, company, location, logo, type,
+    desc: description,   // ✅ corrected here
+    skills,
+    postedBy: currentUser.email
+  });
+  localStorage.setItem("jobs", JSON.stringify(allJobs));
+
+  // Clear form
+  document.getElementById("jobTitle").value = "";
+  document.getElementById("companyName").value = "";
+  document.getElementById("jobLocation").value = "";
+  document.getElementById("companyLogo").value = "";
+  document.getElementById("jobDescription").value = "";
+  document.getElementById("jobSkills").value = "";
+
+  loadMyJobs();
+}
+
+// Edit job
+function editJob(index){
+  let allJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+  const myJobs = allJobs.filter(job => job.postedBy === currentUser.email);
+  const job = myJobs[index];
+
+  const newTitle = prompt("Job Title", job.title);
+  const newCompany = prompt("Company Name", job.company);
+  const newLocation = prompt("Location", job.location);
+  const newLogo = prompt("Company Logo URL", job.logo);
+  const newType = prompt("Type (Job / Internship / Freelance)", job.type);
+  const newDesc = prompt("Description", job.desc); // ✅ corrected here
+  const newSkills = prompt("Skills (comma separated)", job.skills);
+
+  if(newTitle && newCompany && newLocation && newType && newDesc && newSkills){
+    const mainIndex = allJobs.findIndex(j => j === job);
+    allJobs[mainIndex] = {
+      title:newTitle, company:newCompany, location:newLocation, logo:newLogo,
+      type:newType, desc:newDesc, skills:newSkills, postedBy:currentUser.email
+    };
+    localStorage.setItem("jobs", JSON.stringify(allJobs));
+    loadMyJobs();
+  }
+}
+
+// Delete job
+function deleteJob(index){
+  if(!confirm("Delete this job?")) return;
+  let allJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+  const myJobs = allJobs.filter(job => job.postedBy === currentUser.email);
+  const job = myJobs[index];
+  const mainIndex = allJobs.findIndex(j => j === job);
+  allJobs.splice(mainIndex,1);
+  localStorage.setItem("jobs", JSON.stringify(allJobs));
+  loadMyJobs();
+}
+
+loadMyJobs();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin - JobPortal</title>
+  <style>
+    body {font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f4f6fb; margin:0; padding:0; display:flex; flex-direction:column; height:100vh;}
+    .navbar {display:flex; justify-content:space-between; align-items:center; background:#052c47; padding:15px 30px; color:#fff;}
+    .navbar .logo {font-size:1.5rem; font-weight:bold;}
+    .nav-links {list-style:none; display:flex; gap:20px; margin:0; padding:0;}
+    .nav-links li a {color:#fff; text-decoration:none; font-weight:500;}
+
+    .container {flex:1; display:flex;}
+    .sidebar {width:220px; background:#06314f; color:#fff; padding:20px 0; min-height:calc(100vh - 60px);}
+    .sidebar ul {list-style:none; padding:0; margin:0;}
+    .sidebar ul li {padding:12px 20px; cursor:pointer;}
+    .sidebar ul li:hover, .sidebar ul li.active {background:#00b8e6;}
+    .content {flex:1; padding:20px; overflow-y:auto;}
+
+    .card {background:#fff; padding:20px; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06); margin-bottom:25px;}
+    table {width:100%; border-collapse:collapse;}
+    th, td {padding:10px; border-bottom:1px solid #eee; text-align:left;}
+    th {background:#052c47; color:#fff;}
+    .btn {padding:6px 10px; border-radius:6px; border:none; cursor:pointer; margin-right:5px;}
+    .danger {background:#ff6b6b; color:#fff;}
+    .edit {background:#00d1ff; color:#052c47;}
+
+    #adminLoginCard {max-width:400px; margin:50px auto; background:#fff; padding:30px; border-radius:12px; box-shadow:0 8px 25px rgba(0,0,0,0.15);}
+    #adminLoginCard h2 {text-align:center; margin-bottom:15px;}
+    #adminLoginCard input {width:100%; margin-bottom:12px; padding:10px; border-radius:25px; border:1px solid #ccc;}
+    #adminLoginCard button {width:100%; padding:10px; border-radius:25px; border:none; background:#00d1ff; color:#052c47; font-weight:600; cursor:pointer;}
+    #adminLoginCard button:hover {background:#00b8e6; color:#fff;}
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar">
+  <div class="logo">JobPortal Admin</div>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li id="authLink"><a href="access.html">Login / Sign Up</a></li>
+  </ul>
+</nav>
+
+<!-- Admin Login -->
+<div class="card" id="adminLoginCard">
+  <h2>Admin Login</h2>
+  <input type="email" id="adminEmail" placeholder="Admin email"/>
+  <input type="password" id="adminPass" placeholder="Password"/>
+  <button onclick="adminLogin()">Login</button>
+</div>
+
+<!-- Admin Dashboard -->
+<div class="container" id="adminDashboard" style="display:none;">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <ul>
+      <li class="active" onclick="showSection('welcome', event)">Dashboard</li>
+      <li onclick="showSection('users', event)">Manage Users</li>
+      <li onclick="showSection('recruiters', event)">Manage Recruiters</li>
+      <li onclick="showSection('jobs', event)">Manage Jobs</li>
+      <li onclick="showSection('internships', event)">Manage Internships</li>
+      <li onclick="showSection('freelance', event)">Manage Freelance</li>
+      <li onclick="showSection('applications', event)">Manage Applications</li>
+    </ul>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content">
+    <!-- Welcome -->
+    <div id="welcome" class="section card">
+      <h2>Welcome, Admin!</h2>
+      <p>Select a section from the sidebar to manage data.</p>
+    </div>
+
+    <!-- Users -->
+    <div id="users" class="section card" style="display:none;">
+      <h3>Users</h3>
+      <table id="usersTable"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- Recruiters -->
+    <div id="recruiters" class="section card" style="display:none;">
+      <h3>Recruiters</h3>
+      <table id="recruitersTable"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Company</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- Jobs -->
+    <div id="jobs" class="section card" style="display:none;">
+      <h3>Full-Time Jobs</h3>
+      <table id="fulltimeJobsTable"><thead><tr><th>#</th><th>Title</th><th>Company</th><th>Location</th><th>Posted By</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- Internships -->
+    <div id="internships" class="section card" style="display:none;">
+      <h3>Internships</h3>
+      <table id="internshipsTable"><thead><tr><th>#</th><th>Title</th><th>Company</th><th>Location</th><th>Posted By</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- Freelance -->
+    <div id="freelance" class="section card" style="display:none;">
+      <h3>Freelance Jobs</h3>
+      <table id="freelanceJobsTable"><thead><tr><th>#</th><th>Title</th><th>Company</th><th>Location</th><th>Posted By</th><th>Action</th></tr></thead><tbody></tbody></table>
+    </div>
+
+    <!-- Applications -->
+    <div id="applications" class="section card" style="display:none;">
+      <h3>Applications</h3>
+      <table id="appsTable"><thead><tr><th>#</th><th>Name</th><th>Email</th><th>Job</th><th>Applied At</th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id,event){
+  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+  document.querySelectorAll('.sidebar ul li').forEach(li=>li.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+function adminLogin(){
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass = document.getElementById('adminPass').value;
+  if(email==='admin@jobportal.com' && pass==='admin123'){
+    localStorage.setItem('currentUser', JSON.stringify({name:'Admin', email, role:'admin'}));
+    document.getElementById('adminLoginCard').style.display='none';
+    document.getElementById('adminDashboard').style.display='flex';
+    document.getElementById('authLink').innerHTML='<a href="#" onclick="logoutAdmin()">Logout</a>';
+    loadAdminData();
+  } else {
+    alert('Invalid admin credentials.');
+  }
+}
+
+function logoutAdmin(){
+  localStorage.removeItem('currentUser');
+  location.reload();
+}
+
+function loadAdminData(){
+  const users = JSON.parse(localStorage.getItem('users')||'[]');
+  const jobs = JSON.parse(localStorage.getItem('jobs')||'[]');
+  const applications = JSON.parse(localStorage.getItem('applications')||'[]');
+
+  // Users
+  const usersTbody = document.querySelector('#usersTable tbody');
+  const recruitersTbody = document.querySelector('#recruitersTable tbody');
+  usersTbody.innerHTML=''; recruitersTbody.innerHTML='';
+  let userIndex=1, recIndex=1;
+  users.forEach(u=>{
+    if(u.role==='user'){
+      usersTbody.innerHTML += `<tr>
+        <td>${userIndex++}</td><td>${u.name}</td><td>${u.email}</td><td>${u.role}</td>
+        <td><button class="btn danger" onclick="deleteUser('${u.email}')">Delete</button></td>
+      </tr>`;
+    }
+    if(u.role==='recruiter'){
+      recruitersTbody.innerHTML += `<tr>
+        <td>${recIndex++}</td><td>${u.name}</td><td>${u.email}</td><td>${u.company || 'N/A'}</td>
+        <td><button class="btn danger" onclick="deleteUser('${u.email}')">Delete</button></td>
+      </tr>`;
+    }
+  });
+
+  function renderJobsByType(tableId,type){
+    const tbody = document.querySelector(`#${tableId} tbody`);
+    tbody.innerHTML='';
+    let index=1;
+    jobs.forEach((job,realIndex)=>{
+      if(job.type===type){
+        tbody.innerHTML += `<tr>
+          <td>${index++}</td><td>${job.title}</td><td>${job.company}</td><td>${job.location}</td>
+          <td>${job.postedBy || 'System'}</td>
+          <td>
+            <button class="btn edit" onclick="editJob(${realIndex})">Edit</button>
+            <button class="btn danger" onclick="deleteJob(${realIndex})">Delete</button>
+          </td>
+        </tr>`;
+      }
+    });
+  }
+
+  renderJobsByType('fulltimeJobsTable','Full-time');
+  renderJobsByType('internshipsTable','Internship');
+  renderJobsByType('freelanceJobsTable','Freelance');
+
+  // Applications
+  const appsTbody = document.querySelector('#appsTable tbody');
+  appsTbody.innerHTML='';
+  applications.forEach((a,i)=>{
+    appsTbody.innerHTML += `<tr>
+      <td>${i+1}</td>
+      <td>${a.name || "N/A"}</td>
+      <td>${a.email || "N/A"}</td>
+      <td>${a.jobTitle}</td>
+      <td>${a.appliedOn || "N/A"}</td>
+    </tr>`;
+  });
+}
+
+// Users
+function deleteUser(email){
+  if(confirm('Delete this user?')){
+    let users = JSON.parse(localStorage.getItem('users')||'[]');
+    users = users.filter(u=>u.email!==email);
+    localStorage.setItem('users',JSON.stringify(users));
+    loadAdminData();
+  }
+}
+
+// Jobs
+function deleteJob(index){
+  if(confirm('Delete this job?')){
+    let jobs = JSON.parse(localStorage.getItem('jobs')||'[]');
+    jobs.splice(index,1);
+    localStorage.setItem('jobs',JSON.stringify(jobs));
+    loadAdminData();
+  }
+}
+
+function editJob(index){
+  let jobs = JSON.parse(localStorage.getItem('jobs')||'[]');
+  const job = jobs[index];
+  const newTitle = prompt('Job Title', job.title);
+  const newCompany = prompt('Company', job.company);
+  const newLocation = prompt('Location', job.location);
+  if(newTitle && newCompany && newLocation){
+    job.title = newTitle;
+    job.company = newCompany;
+    job.location = newLocation;
+    jobs[index] = job;
+    localStorage.setItem('jobs',JSON.stringify(jobs));
+    loadAdminData();
+  }
+}
+
+// Auto-login
+document.addEventListener('DOMContentLoaded',()=>{
+  const cur = JSON.parse(localStorage.getItem('currentUser'));
+  if(cur && cur.role==='admin'){
+    document.getElementById('adminLoginCard').style.display='none';
+    document.getElementById('adminDashboard').style.display='flex';
+    document.getElementById('authLink').innerHTML='<a href="#" onclick="logoutAdmin()">Logout</a>';
+    loadAdminData();
+  }
+});
+</script>
+
+</body>
+</html>
