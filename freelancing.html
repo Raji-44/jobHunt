@@ -98,7 +98,6 @@
     </div>
   </div>
 </div>
-
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
 AOS.init();
@@ -132,18 +131,25 @@ if(currentUser){
   authLink.href='access.html';
 }
 
-// Load all jobs from localStorage
+// --- JOB VERSIONING --- //
+const JOB_VERSION = 1; // increment when sample jobs are updated
+let savedVersion = parseInt(localStorage.getItem('jobVersion')) || 0;
+
 let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
 
-// Add sample Freelance jobs if none exist
-if(!allJobs.some(job => job.type && job.type.toLowerCase() === 'freelance')){
-  const sampleFreelance = [
-    {title:"Web Developer", company:"Toptal", location:"Remote", type:"Freelance", desc:"Develop websites for clients.", skills:"HTML, CSS, JS", logo:"https://upload.wikimedia.org/wikipedia/commons/3/39/Toptal_logo.svg"},
-    {title:"Graphic Designer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Create graphic designs for projects.", skills:"Photoshop, Illustrator", logo:"https://upload.wikimedia.org/wikipedia/commons/1/13/Fiverr_Logo.svg"},
-    {title:"Content Writer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Write engaging content for blogs.", skills:"Writing, SEO", logo:"https://upload.wikimedia.org/wikipedia/commons/3/33/Upwork-logo.svg"}
-  ];
-  allJobs = allJobs.concat(sampleFreelance);
+// Sample Freelance jobs
+const sampleFreelance = [
+  {title:"Web Developer", company:"Toptal", location:"Remote", type:"Freelance", desc:"Develop websites for clients.", skills:"HTML, CSS, JS", logo:"https://upload.wikimedia.org/wikipedia/commons/3/39/Toptal_logo.svg"},
+  {title:"Graphic Designer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Create graphic designs for projects.", skills:"Photoshop, Illustrator", logo:"https://upload.wikimedia.org/wikipedia/commons/1/13/Fiverr_Logo.svg"},
+  {title:"Content Writer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Write engaging content for blogs.", skills:"Writing, SEO", logo:"https://upload.wikimedia.org/wikipedia/commons/3/33/Upwork-logo.svg"}
+];
+
+// If new version or no freelance jobs, update localStorage
+if(savedVersion < JOB_VERSION || !allJobs.some(job => job.type && job.type.toLowerCase() === 'freelance')){
+  allJobs = allJobs.filter(job => !job.type || job.type.toLowerCase() !== 'freelance'); // remove old freelance jobs
+  allJobs = allJobs.concat(sampleFreelance); // add fresh samples
   localStorage.setItem('jobs', JSON.stringify(allJobs));
+  localStorage.setItem('jobVersion', JOB_VERSION);
 }
 
 // Filter only Freelance jobs
@@ -225,9 +231,9 @@ function submitApplication(e){
   document.getElementById('app-email').value='';
 }
 </script>
-
 <footer>
   <p>&copy; 2025 JobPortal. All rights reserved.</p>
 </footer>
 </body>
 </html>
+
