@@ -64,11 +64,11 @@
 }
 .dropdown-menu li a:hover { background: #00d1ff; color: #052c47; }
 
-footer {background:#052c47; color:#fff; padding:25px 20px; text-align:center; margin-top:50px;}
-footer p {margin:5px 0;}
+  footer {background:#052c47; color:#fff; padding:25px 20px; text-align:center; margin-top:50px;}
+  footer p {margin:5px 0;}
 
-@media(max-width:1024px){.navbar {padding:15px 30px;} .job-cards {justify-content:center;}}
-@media(max-width:768px){.job-card {width:90%;}}
+  @media(max-width:1024px){.navbar {padding:15px 30px;} .job-cards {justify-content:center;}}
+  @media(max-width:768px){.job-card {width:90%;}}
 </style>
 </head>
 <body data-page-type="Freelance">
@@ -90,6 +90,7 @@ footer p {margin:5px 0;}
     <li><a href="admin.html">Admin</a></li>
   </ul>
 </nav>
+
 
 <h2 class="page-title">Available Freelance Opportunities</h2>
 
@@ -124,106 +125,135 @@ footer p {margin:5px 0;}
     </div>
   </div>
 </div>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 <script>
-// Get all jobs from localStorage
+AOS.init();
+
+// Navbar dropdown
+const dropdownLink = document.getElementById('category-link');
+const dropdownMenu = document.getElementById('dropdown-menu');
+dropdownLink.addEventListener('click', e => { 
+    e.stopPropagation(); 
+    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block'; 
+});
+document.addEventListener('click', () => { dropdownMenu.style.display='none'; });
+
+// Highlight current page
+document.querySelectorAll('.nav-links li a').forEach(link => {
+  if(window.location.pathname.endsWith(link.getAttribute('href'))) link.classList.add('active');
+});
+
+// Login / Logout
+const authLink = document.getElementById('auth-link').querySelector('a');
+const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+if(currentUser){
+  authLink.textContent = 'Logout';
+  authLink.href = '#';
+  authLink.onclick = () => { 
+      localStorage.removeItem('currentUser'); 
+      window.location.href='access.html'; 
+  };
+} else {
+  authLink.textContent='Login / Sign Up';
+  authLink.href='access.html';
+}
+
+// Load all jobs from localStorage
 let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
 
+// Check if there are **any Freelance jobs** already
+let hasFreelance = allJobs.some(job => job.type && job.type.toLowerCase() === 'freelance');
+
+// If no Freelance jobs, add sampleFreelancing
+if(!hasFreelance){
+  const sampleFreelancing = [
+    {title:"Web Designer", company:"Upwork", location:"Remote", type:"Freelance", desc:"Create websites for clients worldwide.", skills:"HTML, CSS, JS", logo:"https://e7.pngegg.com/pngimages/744/960/png-clipart-upwork-computer-icons-freelancer-others-miscellaneous-text-thumbnail.png"},
+    {title:"Content Writer", company:"Fiverr", location:"Remote", type:"Freelance", desc:"Write articles, blogs, and copywriting.", skills:"Writing, SEO", logo:"https://logos-world.net/wp-content/uploads/2020/12/Fiverr-Symbol.png"},
+    {title:"Mobile App Developer", company:"Freelancer.com", location:"Remote", type:"Freelance", desc:"Build Android & iOS applications.", skills:"Java, Swift, Kotlin", logo:"https://brandlogos.net/wp-content/uploads/2017/01/freelancer-logo.png"},
+    {title:"Graphic Designer", company:"99designs", location:"Remote", type:"Freelance", desc:"Design logos, brochures, and banners.", skills:"Photoshop, Illustrator", logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQi1jAkA-HSFWbza1Mjp1sy_JEd7jkaEhKtIQ&s"},
+    {title:"SEO Specialist", company:"PeoplePerHour", location:"Remote", type:"Freelance", desc:"Optimize websites for search engines.", skills:"SEO, Analytics", logo:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQw182wb_1kQoOZuyRjoYRpjOfVGd0ktfbmDA&s"}
+  ];
+  allJobs = allJobs.concat(sampleFreelancing);
+  localStorage.setItem('jobs', JSON.stringify(allJobs));
+}
+
 // Filter only Freelance jobs
-let freelanceJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
+let freelancingJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
 
-// Get the container
-const container = document.getElementById('job-cards');
-
-// Function to render cards
-function renderFreelance(list){
-    container.innerHTML = '';
-    if(list.length === 0){
-        container.innerHTML = "<p style='text-align:center;'>No freelance jobs found.</p>";
-        return;
-    }
-    list.forEach((job, index) => {
-        const card = document.createElement('div');
-        card.className = 'job-card';
-        card.innerHTML = `
-            <h4>${job.title}</h4>
-            <p>${job.company} • ${job.location}</p>
-            <p style="font-size:0.9rem;color:#555;">Type: ${job.type}</p>
-            <button class="btn" onclick="openModal(${index})">View</button>
-        `;
-        container.appendChild(card);
-    });
+// Render freelance jobs
+function renderFreelancing(list){
+  const container = document.getElementById('job-cards');
+  container.innerHTML = '';
+  if(list.length === 0){ 
+    container.innerHTML = "<p style='text-align:center;'>No freelancing projects found!</p>"; 
+    return; 
+  }
+  list.forEach(job=>{
+    const div=document.createElement('div');
+    div.className='job-card';
+    div.dataset.title=job.title;
+    div.dataset.company=job.company;
+    div.dataset.location=job.location;
+    div.dataset.type=job.type;
+    div.dataset.desc=job.desc;
+    div.dataset.skills=job.skills;
+    div.innerHTML=`<img src="${job.logo}" alt="${job.company}">
+      <h4>${job.title}</h4>
+      <p>${job.company} • ${job.location} • ${job.type}</p>
+      <button class="btn" onclick="openModalCard(this)">See Details</button>`;
+    container.appendChild(div);
+  });
 }
 
-// Initially render all freelance jobs
-renderFreelance(freelanceJobs);
+// Initial render
+renderFreelancing(freelancingJobs);
 
-// Search function
+// Search / Clear
 function searchJobs(){
-    const keyword = document.getElementById('keyword').value.toLowerCase();
-    const location = document.getElementById('location').value.toLowerCase();
-    const filtered = freelanceJobs.filter(job => 
-        (job.title.toLowerCase().includes(keyword) || job.company.toLowerCase().includes(keyword)) &&
-        job.location.toLowerCase().includes(location)
-    );
-    renderFreelance(filtered);
+  const kw=document.getElementById('keyword').value.toLowerCase();
+  const loc=document.getElementById('location').value.toLowerCase();
+  const filtered=freelancingJobs.filter(j=>
+    (kw==='' || j.title.toLowerCase().includes(kw)) &&
+    (loc==='' || j.location.toLowerCase().includes(loc))
+  );
+  renderFreelancing(filtered);
+}
+function clearSearch(){ 
+  document.getElementById('keyword').value=''; 
+  document.getElementById('location').value=''; 
+  renderFreelancing(freelancingJobs); 
 }
 
-// Clear search
-function clearSearch(){
-    document.getElementById('keyword').value = '';
-    document.getElementById('location').value = '';
-    renderFreelance(freelanceJobs);
+// Modal functions
+function openModalCard(btn){
+  const card=btn.parentElement;
+  document.getElementById('modal-title').innerText=card.dataset.title;
+  document.getElementById('modal-company').innerText=card.dataset.company;
+  document.getElementById('modal-location').innerText=card.dataset.location;
+  document.getElementById('modal-type').innerText=card.dataset.type;
+  document.getElementById('modal-desc').innerText=card.dataset.desc;
+  document.getElementById('modal-skills').innerText=card.dataset.skills;
+  document.getElementById('job-modal').style.display='flex';
+  document.getElementById('apply-form').style.display='none';
+  document.getElementById('apply-btn').style.display='block';
 }
-
-// Modal functionality
-const modal = document.getElementById('job-modal');
-const modalTitle = document.getElementById('modal-title');
-const modalCompany = document.getElementById('modal-company');
-const modalLocation = document.getElementById('modal-location');
-const modalType = document.getElementById('modal-type');
-const modalDesc = document.getElementById('modal-desc');
-const modalSkills = document.getElementById('modal-skills');
-const applyForm = document.getElementById('apply-form');
-const applyBtn = document.getElementById('apply-btn');
-
-function openModal(index){
-    const job = freelanceJobs[index];
-    modalTitle.textContent = job.title;
-    modalCompany.textContent = job.company;
-    modalLocation.textContent = job.location;
-    modalType.textContent = job.type;
-    modalDesc.textContent = job.desc || 'No description';
-    modalSkills.textContent = job.skills || 'N/A';
-    applyForm.style.display = 'none';
-    applyBtn.style.display = 'inline-block';
-    modal.style.display = 'flex';
+function closeModal(){ document.getElementById('job-modal').style.display='none'; }
+function showApplyForm(){ 
+  document.getElementById('apply-form').style.display='block'; 
+  document.getElementById('apply-btn').style.display='none'; 
 }
-
-function closeModal(){
-    modal.style.display = 'none';
-}
-
-function showApplyForm(){
-    applyBtn.style.display = 'none';
-    applyForm.style.display = 'block';
-}
-
 function submitApplication(e){
-    e.preventDefault();
-    const name = document.getElementById('app-name').value.trim();
-    const email = document.getElementById('app-email').value.trim();
-    const appliedOn = new Date().toLocaleString();
-
-    const jobTitle = modalTitle.textContent;
-
-    // Save application in localStorage
-    let applications = JSON.parse(localStorage.getItem('applications') || '[]');
-    applications.push({name, email, jobTitle, appliedOn});
-    localStorage.setItem('applications', JSON.stringify(applications));
-
-    alert('Application submitted successfully!');
-    applyForm.reset();
-    closeModal();
+  e.preventDefault();
+  const name=document.getElementById('app-name').value;
+  const email=document.getElementById('app-email').value;
+  const jobTitle=document.getElementById('modal-title').innerText;
+  const applications=JSON.parse(localStorage.getItem('applications')||'[]');
+  applications.push({jobTitle,name,email,appliedAt:new Date().toISOString()});
+  localStorage.setItem('applications',JSON.stringify(applications));
+  alert(`Applied Successfully!\nName: ${name}\nEmail: ${email}\nProject: ${jobTitle}`);
+  closeModal();
+  document.getElementById('app-name').value='';
+  document.getElementById('app-email').value='';
 }
 </script>
 
@@ -233,8 +263,3 @@ function submitApplication(e){
 </footer>
 </body>
 </html>
-
-
-
-
-
