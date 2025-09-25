@@ -125,48 +125,45 @@ footer p {margin:5px 0;}
   </div>
 </div>
 <script>
-// Load all jobs from localStorage
+// Get all jobs from localStorage
 let allJobs = JSON.parse(localStorage.getItem('jobs') || '[]');
 
 // Filter only Freelance jobs
 let freelanceJobs = allJobs.filter(job => job.type && job.type.toLowerCase() === 'freelance');
 
-// Render freelance jobs
+// Get the container
+const container = document.getElementById('job-cards');
+
+// Function to render cards
 function renderFreelance(list){
-    const container = document.getElementById('job-cards');
     container.innerHTML = '';
     if(list.length === 0){
-        container.innerHTML = "<p style='text-align:center;'>No freelance projects found!</p>";
+        container.innerHTML = "<p style='text-align:center;'>No freelance jobs found.</p>";
         return;
     }
-    list.forEach(job => {
-        const div = document.createElement('div');
-        div.className = 'job-card';
-        div.dataset.title = job.title;
-        div.dataset.company = job.company;
-        div.dataset.location = job.location;
-        div.dataset.type = job.type;
-        div.dataset.desc = job.desc || '';
-        div.dataset.skills = job.skills || '';
-        div.innerHTML = `
-            <img src="${job.logo}" alt="${job.company}">
+    list.forEach((job, index) => {
+        const card = document.createElement('div');
+        card.className = 'job-card';
+        card.innerHTML = `
             <h4>${job.title}</h4>
-            <p>${job.company} • ${job.location} • ${job.type}</p>
-            <button class="btn" onclick="openModalCard(this)">See Details</button>`;
-        container.appendChild(div);
+            <p>${job.company} • ${job.location}</p>
+            <p style="font-size:0.9rem;color:#555;">Type: ${job.type}</p>
+            <button class="btn" onclick="openModal(${index})">View</button>
+        `;
+        container.appendChild(card);
     });
 }
 
-// Initial render
+// Initially render all freelance jobs
 renderFreelance(freelanceJobs);
 
-// Search
+// Search function
 function searchJobs(){
-    const kw = document.getElementById('keyword').value.toLowerCase();
-    const loc = document.getElementById('location').value.toLowerCase();
-    const filtered = freelanceJobs.filter(j =>
-        (kw === '' || j.title.toLowerCase().includes(kw) || j.company.toLowerCase().includes(kw)) &&
-        (loc === '' || j.location.toLowerCase().includes(loc))
+    const keyword = document.getElementById('keyword').value.toLowerCase();
+    const location = document.getElementById('location').value.toLowerCase();
+    const filtered = freelanceJobs.filter(job => 
+        (job.title.toLowerCase().includes(keyword) || job.company.toLowerCase().includes(keyword)) &&
+        job.location.toLowerCase().includes(location)
     );
     renderFreelance(filtered);
 }
@@ -178,41 +175,55 @@ function clearSearch(){
     renderFreelance(freelanceJobs);
 }
 
-// Modal functions
-function openModalCard(btn){
-    const card = btn.parentElement;
-    document.getElementById('modal-title').innerText = card.dataset.title;
-    document.getElementById('modal-company').innerText = card.dataset.company;
-    document.getElementById('modal-location').innerText = card.dataset.location;
-    document.getElementById('modal-type').innerText = card.dataset.type;
-    document.getElementById('modal-desc').innerText = card.dataset.desc;
-    document.getElementById('modal-skills').innerText = card.dataset.skills;
-    document.getElementById('job-modal').style.display = 'flex';
-    document.getElementById('apply-form').style.display = 'none';
-    document.getElementById('apply-btn').style.display = 'block';
+// Modal functionality
+const modal = document.getElementById('job-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalCompany = document.getElementById('modal-company');
+const modalLocation = document.getElementById('modal-location');
+const modalType = document.getElementById('modal-type');
+const modalDesc = document.getElementById('modal-desc');
+const modalSkills = document.getElementById('modal-skills');
+const applyForm = document.getElementById('apply-form');
+const applyBtn = document.getElementById('apply-btn');
+
+function openModal(index){
+    const job = freelanceJobs[index];
+    modalTitle.textContent = job.title;
+    modalCompany.textContent = job.company;
+    modalLocation.textContent = job.location;
+    modalType.textContent = job.type;
+    modalDesc.textContent = job.desc || 'No description';
+    modalSkills.textContent = job.skills || 'N/A';
+    applyForm.style.display = 'none';
+    applyBtn.style.display = 'inline-block';
+    modal.style.display = 'flex';
 }
 
 function closeModal(){
-    document.getElementById('job-modal').style.display = 'none';
+    modal.style.display = 'none';
 }
 
 function showApplyForm(){
-    document.getElementById('apply-form').style.display = 'block';
-    document.getElementById('apply-btn').style.display = 'none';
+    applyBtn.style.display = 'none';
+    applyForm.style.display = 'block';
 }
 
 function submitApplication(e){
     e.preventDefault();
-    const name = document.getElementById('app-name').value;
-    const email = document.getElementById('app-email').value;
-    const jobTitle = document.getElementById('modal-title').innerText;
-    const applications = JSON.parse(localStorage.getItem('applications') || '[]');
-    applications.push({jobTitle, name, email, appliedAt: new Date().toISOString()});
+    const name = document.getElementById('app-name').value.trim();
+    const email = document.getElementById('app-email').value.trim();
+    const appliedOn = new Date().toLocaleString();
+
+    const jobTitle = modalTitle.textContent;
+
+    // Save application in localStorage
+    let applications = JSON.parse(localStorage.getItem('applications') || '[]');
+    applications.push({name, email, jobTitle, appliedOn});
     localStorage.setItem('applications', JSON.stringify(applications));
-    alert(`Applied Successfully!\nName: ${name}\nEmail: ${email}\nProject: ${jobTitle}`);
+
+    alert('Application submitted successfully!');
+    applyForm.reset();
     closeModal();
-    document.getElementById('app-name').value='';
-    document.getElementById('app-email').value='';
 }
 </script>
 
@@ -222,6 +233,7 @@ function submitApplication(e){
 </footer>
 </body>
 </html>
+
 
 
 
