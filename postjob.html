@@ -23,8 +23,16 @@ body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; ba
 .job-card img { width:80px; margin-bottom:10px; border-radius:8px; }
 .job-card h4 { font-size:1.2rem; margin-bottom:5px; }
 .job-card p { font-size:0.9rem; margin-bottom:8px; }
-.job-card .btn { text-decoration:none; background:#00d1ff; color:#052c47; padding:6px 15px; border-radius:20px; font-weight:600; cursor:pointer; margin:3px; }
+.job-card .btn { text-decoration:none; background:#00d1ff; color:#052c47; padding:6px 15px; border-radius:20px; font-weight:600; cursor:pointer; margin:3px; display:inline-block; }
 .job-card .btn:hover { background:#00b8e6; color:#fff; }
+
+/* Modal styles */
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.6); }
+.modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:12px; width:80%; max-width:600px; box-shadow:0 6px 18px rgba(0,0,0,0.2); }
+.modal-content h3 { margin-top:0; }
+.modal-content ul { list-style:none; padding:0; }
+.modal-content ul li { padding:10px; border-bottom:1px solid #ddd; }
+.close { color:#333; float:right; font-size:22px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -57,6 +65,15 @@ body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; ba
 
   <div class="job-cards" id="myJobsContainer" data-aos="fade-up"></div>
 
+</div>
+
+<!-- Modal for applications -->
+<div id="applicationsModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h3>Applications</h3>
+    <ul id="applicationsList"></ul>
+  </div>
 </div>
 
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -95,6 +112,7 @@ function loadMyJobs(){
       <p><strong>Skills:</strong> ${job.skills}</p>
       <button class="btn" onclick="editJob(${index})">Edit</button>
       <button class="btn" onclick="deleteJob(${index})">Delete</button>
+      <button class="btn" onclick="viewApplications(${index})">View Applications</button>
     `;
     container.appendChild(card);
   });
@@ -110,12 +128,15 @@ function addJob(){
   const description = document.getElementById("jobDescription").value.trim();
   const skills = document.getElementById("jobSkills").value.trim();
 
-  if(!title || !company || !location || !type || !description || !skills){ alert("Please fill all fields"); return; }
+  if(!title || !company || !location || !type || !description || !skills){ 
+    alert("Please fill all fields"); 
+    return; 
+  }
 
   let allJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
   allJobs.push({
     title, company, location, logo, type,
-    desc: description,   // ✅ corrected here
+    desc: description,
     skills,
     postedBy: currentUser.email
   });
@@ -143,7 +164,7 @@ function editJob(index){
   const newLocation = prompt("Location", job.location);
   const newLogo = prompt("Company Logo URL", job.logo);
   const newType = prompt("Type (Job / Internship / Freelance)", job.type);
-  const newDesc = prompt("Description", job.desc); // ✅ corrected here
+  const newDesc = prompt("Description", job.desc);
   const newSkills = prompt("Skills (comma separated)", job.skills);
 
   if(newTitle && newCompany && newLocation && newType && newDesc && newSkills){
@@ -167,6 +188,45 @@ function deleteJob(index){
   allJobs.splice(mainIndex,1);
   localStorage.setItem("jobs", JSON.stringify(allJobs));
   loadMyJobs();
+}
+
+// View applications for a job
+function viewApplications(index){
+  const allJobs = JSON.parse(localStorage.getItem("jobs") || "[]");
+  const myJobs = allJobs.filter(job => job.postedBy === currentUser.email);
+  const job = myJobs[index];
+
+  // Fetch applications
+  const applications = JSON.parse(localStorage.getItem("applications") || "[]");
+  const jobApplications = applications.filter(app => app.jobTitle === job.title && app.company === job.company);
+
+  const list = document.getElementById("applicationsList");
+  list.innerHTML = "";
+
+  if(jobApplications.length === 0){
+    list.innerHTML = "<li>No applications yet for this job.</li>";
+  } else {
+    jobApplications.forEach((app, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<strong>${app.name}</strong> (${app.email})<br>Skills: ${app.skills}`;
+      list.appendChild(li);
+    });
+  }
+
+  document.getElementById("applicationsModal").style.display = "block";
+}
+
+// Close modal
+function closeModal(){
+  document.getElementById("applicationsModal").style.display = "none";
+}
+
+// Close modal on outside click
+window.onclick = function(event) {
+  const modal = document.getElementById("applicationsModal");
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
 }
 
 loadMyJobs();
